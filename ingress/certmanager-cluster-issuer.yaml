@@ -6,7 +6,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@tondomaine.com  # Remplace par ton email
+    email: fzrouama@amoaman.com
     privateKeySecretRef:
       name: letsencrypt-prod
       namespace: cert-manager
