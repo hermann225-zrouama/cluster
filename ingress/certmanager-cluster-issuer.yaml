@@ -9,7 +9,6 @@ spec:
     email: fzrouama@amoaman.com
     privateKeySecretRef:
       name: letsencrypt-prod
-      namespace: cert-manager
     solvers:
     - http01:
         ingress:
