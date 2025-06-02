@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: minio/minio
+        ports:
+        - containerPort: 9000
+        - containerPort: 9001
+        env:
+        - name: MINIO_ROOT_USER
+          value: "admin"
+        - name: MINIO_ROOT_PASSWORD
+          value: "password"
+        - name: MINIO_DOMAIN
+          value: "minio"
+        - name: MINIO_REGION_NAME
+          value: "us-east-1"
+        - name: MINIO_REGION
+          value: "us-east-1"
+        volumeMounts:
+        - name: minio-storage
+          mountPath: /data
+        - name: minio-data
+          mountPath: /minio-data
+        - name: init-script
+          mountPath: /init.sh
+          subPath: init.sh
+        command: ["/bin/sh"]
+        args: ["/init.sh"]
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 20
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: minio-storage
+        persistentVolumeClaim:
+          claimName: minio-pvc
+      - name: minio-data
+        hostPath:
+          path: /data/minio-data
+      - name: init-script
+        configMap:
+          name: minio-init-script
+          defaultMode: 0755

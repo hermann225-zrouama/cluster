@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-init-script
+  namespace: minio
+data:
+  init.sh: |
+    #!/bin/sh
+    minio server /data --console-address ':9001' &
+    sleep 10
+    mc alias set myminio http://localhost:9000 admin password
+    mc mb myminio/datalake --ignore-existing
+    mc mb myminio/datalakehouse --ignore-existing
+    mc mb myminio/warehouse --ignore-existing
+    mc mb myminio/seed --ignore-existing
+    if [ -d "/minio-data" ] && [ "$(ls -A /minio-data)" ]; then
+      mc cp /minio-data/* myminio/seed/ || true
+    fi
+    tail -f /dev/null

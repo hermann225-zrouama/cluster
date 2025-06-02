@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dremio
+  namespace: dremio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dremio
+  template:
+    metadata:
+      labels:
+        app: dremio
+    spec:
+      containers:
+      - name: dremio
+        image: dremio/dremio-oss:latest
+        ports:
+        - containerPort: 9047
+        - containerPort: 31010
+        - containerPort: 32010
+        - containerPort: 45678
+        env:
+        - name: DREMIO_JAVA_SERVER_EXTRA_OPTS
+          value: "-Dpaths.dist=file:///opt/dremio/data/dist"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "4000m"
