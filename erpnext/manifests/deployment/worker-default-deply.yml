@@ -1,0 +1,56 @@
+
+# Workers
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frappe-worker-default
+  namespace: erp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frappe-worker-default
+  template:
+    metadata:
+      labels:
+        app: frappe-worker-default
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+      - name: init
+        image: frappe/erpnext:v15.59.0
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        command: ["bench", "worker", "--queue", "default"]
+        env:
+        - name: DB_HOST
+          value: "mariadb.erp.svc.cluster.local"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "_decae369018f2248" # Verify after frappe-init runs
+        - name: DB_USER
+          value: "_decae369018f2248" # Verify after frappe-init runs
+        - name: DB_PASSWORD
+          value: "Od6irMm3jW4rlMB1" # Verify after frappe-init runs
+        - name: REDIS_QUEUE
+          valueFrom:
+            configMapKeyRef:
+              name: frappe-config
+              key: redis_queue_url
+        volumeMounts:
+        - name: sites
+          mountPath: /home/frappe/frappe-bench/sites
+        - name: logs
+          mountPath: /home/frappe/frappe-bench/logs
+      volumes:
+      - name: sites
+        persistentVolumeClaim:
+          claimName: frappe-sites
+      - name: logs
+        persistentVolumeClaim:
+          claimName: frappe-logs
+---

@@ -1,0 +1,19 @@
+---
+# ConfigMap for Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frappe-config
+  namespace: erp
+data:
+  site_name: "erp.amoaman.com"
+  redis_cache_url: "redis://redis-cache.erp.svc.cluster.local:6379"
+  redis_queue_url: "redis://redis-queue.erp.svc.cluster.local:6379"
+  db_host: "mariadb.erp.svc.cluster.local"
+  common_site_config.json: |
+    {
+      "redis_queue": "redis://redis-queue.erp.svc.cluster.local:6379",
+      "redis_socketio": "redis://redis-queue.erp.svc.cluster.local:6379",
+      "redis_cache": "redis://redis-cache.erp.svc.cluster.local:6379",
+      "socketio_port": "9000"
+    }

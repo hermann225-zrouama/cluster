@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: erpnext-ingress
+  namespace: erp
+  annotations:
+    # Cert-Manager génèrera automatiquement le certificat SSL
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Optionnel : redirection HTTP vers HTTPS
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - erp.amoaman.com
+    secretName: erp-tls-cert  # Cert-Manager créera ce secret automatiquement
+  rules:
+  - host: erp.amoaman.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frappe-frontend
+            port:
+              number: 80

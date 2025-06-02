@@ -1,0 +1,52 @@
+
+# Scheduler
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frappe-scheduler
+  namespace: erp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frappe-scheduler
+  template:
+    metadata:
+      labels:
+        app: frappe-scheduler
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+      - name: init
+        image: frappe/erpnext:v15.59.0
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        command: ["bench", "schedule"]
+        env:
+        - name: DB_HOST
+          value: "mariadb.erp.svc.cluster.local"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "_decae369018f2248" # Verify after frappe-init runs
+        - name: DB_USER
+          value: "_decae369018f2248" # Verify after frappe-init runs
+        - name: DB_PASSWORD
+          value: "Od6irMm3jW4rlMB1" # Verify after frappe-init runs
+        volumeMounts:
+        - name: sites
+          mountPath: /home/frappe/frappe-bench/sites
+        - name: logs
+          mountPath: /home/frappe/frappe-bench/logs
+      volumes:
+      - name: sites
+        persistentVolumeClaim:
+          claimName: frappe-sites
+      - name: logs
+        persistentVolumeClaim:
+          claimName: frappe-logs
+
+---

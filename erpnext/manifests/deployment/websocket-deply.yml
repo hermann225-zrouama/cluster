@@ -1,0 +1,51 @@
+# Websocket
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frappe-websocket
+  namespace: erp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frappe-websocket
+  template:
+    metadata:
+      labels:
+        app: frappe-websocket
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+      - name: init
+        image: frappe/erpnext:v15.59.0
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+        ports:
+        - containerPort: 9000
+        env:
+        - name: DB_HOST
+          value: "mariadb.erp.svc.cluster.local"
+        - name: DB_PORT
+          value: "3306"
+        - name: REDIS_CACHE
+          valueFrom:
+            configMapKeyRef:
+              name: frappe-config
+              key: redis_cache_url
+        volumeMounts:
+        - name: sites
+          mountPath: /home/frappe/frappe-bench/sites
+        - name: logs
+          mountPath: /home/frappe/frappe-bench/logs
+      volumes:
+      - name: sites
+        persistentVolumeClaim:
+          claimName: frappe-sites
+      - name: logs
+        persistentVolumeClaim:
+          claimName: frappe-logs
+---

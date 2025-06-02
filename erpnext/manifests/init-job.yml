@@ -1,0 +1,117 @@
+
+# Job d'initialisation du site (corrected)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: frappe-init
+  namespace: erp
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+      - name: init
+        image: frappe/erpnext:v15.59.0
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -e
+          
+          # Export environment variables to ensure they are available
+          export SITE_NAME="${SITE_NAME}"
+          
+          wait-for-it -t 60 mariadb.erp.svc.cluster.local:3306 &&
+          wait-for-it -t 60 redis-cache.erp.svc.cluster.local:6379 &&
+          wait-for-it -t 60 redis-queue.erp.svc.cluster.local:6379 &&
+
+          if [ -f "/home/frappe/frappe-bench/sites/${SITE_NAME}/site_config.json" ]; then
+            echo "Le site ${SITE_NAME} existe déjà - installation des applications"
+            bench --site ${SITE_NAME} install-app erpnext
+            bench --site ${SITE_NAME} install-app hrms
+          else
+            echo "Création du nouveau site ${SITE_NAME} avec ERPNext et Frappe HR"
+            mkdir -p /home/frappe/frappe-bench/sites
+            ls -1 /home/frappe/frappe-bench/apps > /home/frappe/frappe-bench/sites/apps.txt
+            
+            bench new-site ${SITE_NAME} \
+              --db-host mariadb.erp.svc.cluster.local \
+              --mariadb-root-password="${DB_ROOT_PASSWORD}" \
+              --admin-password="${ADMIN_PASSWORD}" \
+              --install-app erpnext
+
+            
+            
+            # Check if site_config.json was created
+            SITE_CONFIG="/home/frappe/frappe-bench/sites/${SITE_NAME}/site_config.json"
+            if [ ! -f "${SITE_CONFIG}" ]; then
+              echo "Error: ${SITE_CONFIG} not found"
+              exit 1
+            fi
+            
+            # Extract auto-generated db_name and db_password
+            DB_NAME=$(grep '"db_name":' "${SITE_CONFIG}" | awk -F'"' '{print $4}' || echo "")
+            DB_PASSWORD=$(grep '"db_password":' "${SITE_CONFIG}" | awk -F'"' '{print $4}' || echo "")
+            
+            # Verify extracted values
+            if [ -z "${DB_NAME}" ] || [ -z "${DB_PASSWORD}" ]; then
+              echo "Error: Failed to extract DB_NAME or DB_PASSWORD from ${SITE_CONFIG}"
+              cat "${SITE_CONFIG}"
+              exit 1
+            fi
+            
+            echo "Extracted DB_NAME: ${DB_NAME}"
+            echo "Extracted DB_PASSWORD: ${DB_PASSWORD}"
+            
+            # Grant privileges to the auto-generated user
+            mysql -h mariadb.erp.svc.cluster.local -u root -p"${DB_ROOT_PASSWORD}" -e \
+              "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_NAME}'@'%' IDENTIFIED BY '${DB_PASSWORD}'; FLUSH PRIVILEGES;" || {
+              echo "Error: Failed to execute GRANT command"
+              exit 1
+            }
+            
+            echo "Privileges granted successfully for ${DB_NAME}"
+            
+            # Ensure common_site_config.json uses correct Redis URLs
+            echo '{"redis_queue": "redis://redis-queue.erp.svc.cluster.local:6379", "redis_socketio": "redis://redis-queue.erp.svc.cluster.local:6379", "redis_cache": "redis://redis-cache.erp.svc.cluster.local:6379"}' > /home/frappe/frappe-bench/sites/common_site_config.json
+          fi
+
+          # installation de hrms
+          # bench get-app hrms
+          # bench --site ${SITE_NAME} install-app hrms
+          # bench --site ${SITE_NAME} migrate
+        env:
+        - name: SITE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: frappe-config
+              key: site_name
+        - name: DB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: frappe-secrets
+              key: db_root_password
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: frappe-secrets
+              key: admin_password
+        volumeMounts:
+        - name: sites
+          mountPath: /home/frappe/frappe-bench/sites
+        - name: logs
+          mountPath: /home/frappe/frappe-bench/logs
+      restartPolicy: OnFailure
+      volumes:
+      - name: sites
+        persistentVolumeClaim:
+          claimName: frappe-sites
+      - name: logs
+        persistentVolumeClaim:
+          claimName: frappe-logs
+
+---
