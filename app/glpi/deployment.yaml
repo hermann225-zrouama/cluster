@@ -1,0 +1,60 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: glpi-helpdesk
+ labels:
+   app: glpi-helpdesk
+ namespace: helpdesk
+spec:
+ selector:
+   matchLabels:
+     app: glpi-helpdesk
+ strategy:
+   type: RollingUpdate
+ template:
+   metadata:
+     labels:
+       app: glpi-helpdesk
+   spec:
+     containers:
+       - name: glpi-helpdesk
+         image: diouxx/glpi:latest
+         env:
+           - name: TZ
+             value: "Europe/Paris"
+         ports:
+           - containerPort: 80
+         volumeMounts:
+           - name: glpi-pvc
+             mountPath: /var/www/html
+         lifecycle:
+           preStop:
+             exec:
+               command: ["sleep", "60"]
+       - name: mysql
+         image: mysql:latest
+         env:
+           - name: MYSQL_ROOT_PASSWORD
+             value: root
+           - name: MYSQL_DATABASE
+             value: glpi
+           - name: MYSQL_USER
+             value: glpi
+           - name: MYSQL_PASSWORD
+             value: glpi
+         volumeMounts:
+           - name: mysql-pvc
+             mountPath: /var/lib/mysql
+         lifecycle:
+           preStop:
+             exec:
+               command: ["sleep", "60"]
+     volumes:
+       - name: glpi-pvc
+         persistentVolumeClaim:
+           claimName: glpi-pvc
+       - name: mysql-pvc
+         persistentVolumeClaim:
+           claimName: mysql-pvc

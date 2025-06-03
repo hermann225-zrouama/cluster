@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: helpdesk-svc
+ labels:
+   app: helpdesk-svc
+ namespace: helpdesk
+spec:
+ ports:
+   - port: 80
+ selector:
+   app: glpi-helpdesk
+ type: NodePort
