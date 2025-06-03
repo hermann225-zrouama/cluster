@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-nodeport
+  namespace: minio-tenant  # Remplace par le namespace où MinIO est déployé (ex: minio-operator ou default)
+spec:
+  type: NodePort
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
+      nodePort: 30900  # Choisis un port entre 30000-32767
