@@ -1,12 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: minio-nodeport
-  namespace: minio-tenant  # Remplace par le namespace où MinIO est déployé (ex: minio-operator ou default)
+  name: minio-amoaman-nodeport
+  namespace: minio-tenant
+  labels:
+    app: minio
+    v1.min.io/tenant: minio-amoaman
 spec:
   type: NodePort
+  selector:
+    v1.min.io/tenant: minio-amoaman
   ports:
-    - port: 9000
+    - name: api
+      port: 9000
       targetPort: 9000
       protocol: TCP
-      nodePort: 30900  # Choisis un port entre 30000-32767
+      nodePort: 30900  # Choisis un port libre entre 30000–32767
