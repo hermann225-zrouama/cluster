@@ -32,16 +32,3 @@ spec:
         - name: minio-storage
           persistentVolumeClaim:
             claimName: minio-pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: minio-pvc
-  namespace: minio
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi  # Taille ajustable selon vos besoins
-  storageClassName: longhorn  # À adapter à votre cluster
