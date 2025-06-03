@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: clickhouse-data-pvc
+  name: clickhouse-pvc
   namespace: clickhouse
 spec:
   storageClassName: longhorn

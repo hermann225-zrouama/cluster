@@ -1,10 +1,11 @@
+
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: clickhouse
   name: clickhouse
-  labels:
-    app: clickhouse
+  namespace: clickhouse
 spec:
   replicas: 1
   selector:
@@ -15,57 +16,25 @@ spec:
       labels:
         app: clickhouse
     spec:
-      securityContext:
-        fsGroup: 101
-        runAsUser: 101
-        runAsGroup: 101
       containers:
-      - name: clickhouse
-        image: clickhouse/clickhouse-server
-        ports:
-        - containerPort: 9000
-          name: tcp
-        - containerPort: 8123
-          name: http
-        volumeMounts:
-        - name: clickhouse-data
-          mountPath: /var/lib/clickhouse
-        - name: clickhouse-config
-          mountPath: /etc/clickhouse-server/config.xml
-          subPath: config.xml
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "4Gi"
-            cpu: "2000m"
-        securityContext:
-          capabilities:
-            add:
-            - SYS_NICE
-            - NET_ADMIN
-            - IPC_LOCK
-        livenessProbe:
-          httpGet:
-            path: /ping
-            port: 8123
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /ping
-            port: 8123
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+        - name: clickhouse
+          image: clickhouse/clickhouse-server:latest
+          ports:
+            - containerPort: 8123  # HTTP interface
+            - containerPort: 9000  # Native TCP interface
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/clickhouse
       volumes:
-      - name: clickhouse-data
-        persistentVolumeClaim:
-          claimName: clickhouse-data-pvc
-      - name: clickhouse-config
-        configMap:
-          name: clickhouse-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: clickhouse-pvc
+
+      # Add resource limits and requests
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "16Gi"
+          cpu: "4"

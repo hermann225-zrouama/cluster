@@ -1,19 +1,18 @@
-# ClickHouse Service
+
+---
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: clickhouse
   name: clickhouse
+  namespace: clickhouse
 spec:
   selector:
     app: clickhouse
   ports:
-  - name: tcp
-    port: 9000
-    targetPort: 9000
-    nodePort: 30002
-  - name: http
-    port: 8123
-    targetPort: 8123
-    nodePort: 30123
-  type: NodePort
+    - name: http
+      port: 8123
+      targetPort: 8123
+    - name: native
+      port: 9000
+      targetPort: 9000
+  type: NodePort  # Change to ClusterIP or LoadBalancer as needed
