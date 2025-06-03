@@ -26,7 +26,7 @@ spec:
             - containerPort: 9000
             - containerPort: 9001
           volumeMounts:
-            - name: minio-data
+            - name: minio-storage
               mountPath: /data
       volumes:
         - name: minio-storage
