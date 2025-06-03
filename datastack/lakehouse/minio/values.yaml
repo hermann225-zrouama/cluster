@@ -93,7 +93,7 @@ spec:
       status: {}
     volumesPerServer: 1
   priorityClassName: ""
-  requestAutoCert: true
+  requestAutoCert: false
   serviceAccountName: ""
   serviceMetadata:
     consoleServiceAnnotations: {}
