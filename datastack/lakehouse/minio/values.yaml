@@ -76,7 +76,7 @@ spec:
       runAsGroup: 1000
       runAsNonRoot: true
       runAsUser: 1000
-    servers: 3
+    servers: 4
     tolerations: []
     topologySpreadConstraints: []
     volumeClaimTemplate:
