@@ -12,7 +12,7 @@ stringData:
   config.env: |-
     export MINIO_ROOT_USER="admin"
     export MINIO_ROOT_PASSWORD="Amoaman@2025"
-    #export MINIO_STORAGE_CLASS_STANDARD="EC:2"
+    export MINIO_STORAGE_CLASS_STANDARD="EC:2"
     export MINIO_BROWSER="on"
 type: Opaque
 ---
@@ -76,7 +76,7 @@ spec:
       runAsGroup: 1000
       runAsNonRoot: true
       runAsUser: 1000
-    servers: 1 
+    servers: 4
     tolerations: []
     topologySpreadConstraints: []
     volumeClaimTemplate:
