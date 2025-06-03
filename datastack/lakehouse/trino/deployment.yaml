@@ -1,0 +1,32 @@
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: trino
+  name: trino
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trino
+  template:
+    metadata:
+      labels:
+        app: trino
+    spec:
+      containers:
+        - name: trino
+          image: trinodb/trino:latest
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: trino-catalogs
+              mountPath: /etc/trino/catalog/iceberg.properties
+              subPath: iceberg.properties
+              readOnly: true
+      volumes:
+        - name: trino-catalogs
+          configMap:
+            name: trino-catalogs
