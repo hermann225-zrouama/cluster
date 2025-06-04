@@ -33,6 +33,7 @@ spec:
             - containerPort: 3306
           volumeMounts:
             - name: mysql-pvc
+              mountPath: /var/lib/mysql-glpi
           readinessProbe:
             exec:
               command:
