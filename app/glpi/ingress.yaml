@@ -4,16 +4,14 @@ metadata:
   name: helpdesk-ingress
   namespace: helpdesk
   annotations:
-    # Cert-Manager génèrera automatiquement le certificat SSL
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    # Optionnel : redirection HTTP vers HTTPS
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
     - tma.amoaman.com
-    secretName: tma-tls-cert  # Cert-Manager créera ce secret automatiquement
+    secretName: tma-tls-cert-1
   rules:
   - host: tma.amoaman.com
     http:
