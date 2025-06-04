@@ -22,7 +22,6 @@ spec:
           env:
             - name: TZ
               value: "Europe/Paris"
-            # Utiliser le service MySQL séparé
             - name: GLPI_DB_HOST
               value: "mysql-glpi-svc"
             - name: GLPI_DB_NAME
@@ -33,6 +32,8 @@ spec:
               value: "glpi"
             - name: GLPI_DB_PORT
               value: "3306"
+            - name: SERVER_NAME
+              value: "tma.amoaman.com"
           ports:
             - containerPort: 80
           volumeMounts:
