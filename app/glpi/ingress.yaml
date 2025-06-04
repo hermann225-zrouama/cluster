@@ -11,7 +11,7 @@ spec:
   tls:
   - hosts:
     - tma.amoaman.com
-    secretName: tma-tls-cert-1
+    secretName: glpi-tls-cert
   rules:
   - host: tma.amoaman.com
     http:
