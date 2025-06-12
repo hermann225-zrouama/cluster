@@ -105,6 +105,10 @@ spec:
           mountPath: /home/frappe/frappe-bench/sites
         - name: logs
           mountPath: /home/frappe/frappe-bench/logs
+        - name: frappe-config-vol
+          mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
+          subPath: common_site_config.json
+
       restartPolicy: OnFailure
       volumes:
       - name: sites
@@ -113,5 +117,11 @@ spec:
       - name: logs
         persistentVolumeClaim:
           claimName: frappe-logs
+      - name: frappe-config-vol
+        configMap:
+          name: frappe-config
+          items:
+            - key: common_site_config.json
+              path: common_site_config.json
 
 ---
