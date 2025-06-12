@@ -48,16 +48,7 @@ spec:
               mountPath: /home/frappe/frappe-bench/sites
             - name: logs
               mountPath: /home/frappe/frappe-bench/logs
-            - name: REDIS_CACHE
-              valueFrom:
-                configMapKeyRef:
-                  name: frappe-config
-                  key: redis_cache_url
-            - name: REDIS_QUEUE
-              valueFrom:
-                configMapKeyRef:
-                  name: frappe-config
-                  key: redis_queue_url
+            
 
       volumes:
         - name: sites
