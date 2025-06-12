@@ -100,12 +100,13 @@ spec:
               name: frappe-secrets
               key: admin_password
         volumeMounts:
+        volumeMounts:
           - name: frappe
             mountPath: /home/frappe/frappe-bench
           - name: frappe-config-vol
             mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
             subPath: common_site_config.json
-
+      restartPolicy: OnFailure
       volumes:
       - name: frappe
         persistentVolumeClaim:
