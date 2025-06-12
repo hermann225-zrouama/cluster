@@ -1,0 +1,50 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-install-app
+  namespace: erp-dev
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: erpnext-init-modify-files
+          image: arnadeem/erpnext-hrms:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              cp -f /home/frappe/common_site_config.json /home/frappe/frappe-bench/sites/common_site_config.json && \
+              cat /home/frappe/frappe-bench/sites/common_site_config.json
+          volumeMounts:
+            - mountPath: /home/frappe
+              name: erpnext-site
+            - mountPath: /home/frappe/frappe-bench/sites
+              name: erpnext-storage
+            - mountPath: /home/frappe/frappe-bench/logs
+              name: erpnext-logs
+        - name: erpnext-init-install
+          image: arnadeem/erpnext-hrms:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              ls -1 apps > /home/frappe/frappe-bench/sites/apps.txt && \
+              bench new-site --no-mariadb-socket --admin-password=changeMePlease --db-root-password=mariadb_password --install-app erpnext --set-default erp-dev.amoaman.com --force && \
+              bench --site erp-dev.amoaman.com install-app hrms
+          volumeMounts:
+            - mountPath: /home/frappe/frappe-bench/sites
+              name: erpnext-storage
+            - mountPath: /home/frappe/frappe-bench/logs
+              name: erpnext-logs
+      volumes:
+        - name: erpnext-site
+          configMap:
+            name: erpnext-config
+            items:
+              - key: common_site_config.json
+                path: common_site_config.json
+        - name: erpnext-storage
+          persistentVolumeClaim:
+            claimName: erpnext-storage-v8
+        - name: erpnext-logs
+          emptyDir: {}

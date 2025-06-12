@@ -1,0 +1,8 @@
+resources:
+  - pvc.yaml
+  - db.yaml
+
+configMapGenerator:
+  - name: mariadb-init
+    files:
+      - init.sql

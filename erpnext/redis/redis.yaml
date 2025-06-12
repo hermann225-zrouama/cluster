@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-cache
+  namespace: erp-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-cache
+  template:
+    metadata:
+      labels:
+        app: redis-cache
+    spec:
+      containers:
+      - name: valkey-cache
+        image: valkey/valkey:7.2
+        command: ["valkey-server", "/etc/conf.d/redis.conf"]
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/conf.d
+      volumes:
+        - name: redis-config
+          configMap:
+            name: redis-config
+            items:
+              - key: redis.conf
+                path: redis.conf
+                
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cache
+  namespace: erp-dev
+spec:
+  selector:
+    app: redis-cache
+  ports:
+  - port: 6379
+    targetPort: 6379
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-queue
+  namespace: erp-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-queue
+  template:
+    metadata:
+      labels:
+        app: redis-queue
+    spec:
+      containers:
+      - name: valkey-queue
+        image: valkey/valkey:7.2
+        command: ["valkey-server", "/etc/conf.d/redis-queue.conf"]
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "500m"
+        ports:
+          - containerPort: 6379
+        volumeMounts:
+          - name: redis-queue-config
+            mountPath: /etc/conf.d
+      volumes:
+        - name: redis-queue-config
+          configMap:
+            name: redis-queue-config
+            items:
+              - key: queue.conf
+                path: redis-queue.conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-queue
+  namespace: erp-dev
+spec:
+  selector:
+    app: redis-queue
+  ports:
+  - port: 6379
+    targetPort: 6379
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-socketio
+  namespace: erp-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-socketio
+  template:
+    metadata:
+      labels:
+        app: redis-socketio
+    spec:
+      containers:
+      - name: valkey-queue
+        image: valkey/valkey:7.2
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "500m"
+        ports:
+          - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-socketio
+  namespace: erp-dev
+spec:
+  selector:
+    app: redis-socketio
+  ports:
+  - port: 6379
+    targetPort: 6379

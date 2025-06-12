@@ -1,13 +1,12 @@
-# PersistentVolumeClaims
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: frappe-sites
+  name: erpnext-storage
   namespace: erp-dev
 spec:
   accessModes:
-    - ReadWriteMany
-  storageClassName: longhorn
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: 6Gi

@@ -4,9 +4,7 @@ metadata:
   name: erpnext-ingress
   namespace: erp-dev
   annotations:
-    # Cert-Manager génèrera automatiquement le certificat SSL
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    # Optionnel : redirection HTTP vers HTTPS
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
@@ -22,6 +20,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: frappe-frontend
+            name: frappe-bench-erpnext
             port:
-              number: 80
+              number: 8080

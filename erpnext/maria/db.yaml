@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mariadb-erpnext
+  namespace: erp-dev
+spec:
+  selector:
+    matchLabels:
+      app: mariadb-erpnext
+  serviceName: mariadb-erpnext
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mariadb-erpnext
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.6
+        args: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--skip-character-set-client-handshake", "--skip-innodb-read-only-compressed"]
+        ports:
+          - containerPort: 3306
+        env:
+          - name: MARIADB_ROOT_PASSWORD
+            value: mariadb_password
+        volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: mariadb-storage
+          - name: mariadb-init
+            mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mariadb-storage
+          persistentVolumeClaim:
+            claimName: mariadb-erpnext-storage
+        - name: mariadb-init
+          configMap:
+            name: mariadb-init
+            items:
+              - key: init.sql
+                path: init.sql
+  volumeClaimTemplates:
+    - metadata:
+        name: mariadb-erpnext-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 5Gi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-erpnext
+spec:
+  selector:
+    app: mariadb-erpnext
+  ports:
+  - port: 3306
+    targetPort: 3306
+  type: ClusterIP

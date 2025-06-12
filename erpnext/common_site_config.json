@@ -1,0 +1,16 @@
+{
+    "db_host": "mariadb-erpnext.erp-dev.svc.cluster.local",
+    "db_port": 3306,
+    "db_name": "frappe",
+    "db_user": "frappe",
+    "db_password": "mariadb_password",
+    "redis_cache": "redis://redis-cache.erp-dev.svc.cluster.local:6379",
+    "redis_queue": "redis://redis-queue.erp-dev.svc.cluster.local:6379",
+    "redis_socketio": "redis://redis-socketio.erp-dev.svc.cluster.local:6379",
+    "http_port": "8080",
+    "frappe_user": "frappe",
+    "admin_password": "Amoaman@2025",
+    "socketio_port": "9000",
+    "enable_frappe_logger": true,
+    "monitor": true
+}
