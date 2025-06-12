@@ -137,14 +137,13 @@ spec:
             bench --site ${SITE_NAME} install-app hrms
             
             # Ensure common_site_config.json uses correct Redis URLs
-            # echo '{"redis_queue": "redis://redis-queue.erp-dev.svc.cluster.local:6379", "redis_socketio": "redis://redis-queue.erp-dev.svc.cluster.local:6379", "redis_cache": "redis://redis-cache.erp-dev.svc.cluster.local:6379", "socketio_port":"9000"}' > sites/common_site_config.json
+            # echo '{"redis_queue": "redis://redis-queue.erp-dev.svc.cluster.local:6379", "redis_socketio": "redis://redis-queue.erp-dev.svc.cluster.local:6379", "redis_cache": "redis://redis-cache.erp-dev.svc.cluster.local:6379", "socketio_port":"9000"}' > /home/frappe/frappe-bench/sites/common_site_config.json
           fi
 
-          echo "Initialisation terminée avec succès!"
-          echo "Structure finale du répertoire:"
-          ls -la /home/frappe/frappe-bench/
-          echo "Apps disponibles:"
-          ls -la /home/frappe/frappe-bench/apps/
+          # installation de hrms
+          bench get-app hrms
+          bench --site ${SITE_NAME} install-app hrms
+          bench --site ${SITE_NAME} migrate
         env:
         - name: SITE_NAME
           valueFrom:
@@ -178,3 +177,5 @@ spec:
           items:
             - key: common_site_config.json
               path: common_site_config.json
+
+---
