@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frappe-frontend
-  namespace: erp
+  namespace: erp-dev
 spec:
   replicas: 1
   selector:
@@ -30,7 +30,7 @@ spec:
             - name: BACKEND
               value: "frappe-backend:8000"
             - name: FRAPPE_SITE_NAME_HEADER
-              value: "erp.amoaman.com"
+              value: "erp-dev.amoaman.com"
             - name: SOCKETIO
               value: "frappe-websocket:9000"
             - name: UPSTREAM_REAL_IP_ADDRESS

@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: erpnext-ingress
-  namespace: erp
+  namespace: erp-dev
   annotations:
     # Cert-Manager génèrera automatiquement le certificat SSL
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -12,10 +12,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - erp.amoaman.com
-    secretName: erp-tls-cert  # Cert-Manager créera ce secret automatiquement
+    - erp-dev.amoaman.com
+    secretName: erp-dev-tls-cert  # Cert-Manager créera ce secret automatiquement
   rules:
-  - host: erp.amoaman.com
+  - host: erp-dev.amoaman.com
     http:
       paths:
       - path: /

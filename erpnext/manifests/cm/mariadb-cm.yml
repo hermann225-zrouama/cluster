@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mariadb-config
-  namespace: erp
+  namespace: erp-dev
 data:
   custom.cnf: |
     [mysqld]

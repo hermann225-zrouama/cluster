@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frappe-worker-long
-  namespace: erp
+  namespace: erp-dev
 spec:
   replicas: 1
   selector:
@@ -26,7 +26,7 @@ spec:
         command: ["bench", "worker", "--queue", "long"]
         env:
         - name: DB_HOST
-          value: "mariadb.erp.svc.cluster.local"
+          value: "mariadb.erp-dev.svc.cluster.local"
         - name: DB_PORT
           value: "3306"
         - name: DB_NAME
