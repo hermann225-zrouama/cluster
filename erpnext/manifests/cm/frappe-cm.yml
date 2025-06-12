@@ -15,5 +15,6 @@ data:
       "redis_queue": "redis://redis-queue.erp-dev.svc.cluster.local:6379",
       "redis_socketio": "redis://redis-queue.erp-dev.svc.cluster.local:6379",
       "redis_cache": "redis://redis-cache.erp-dev.svc.cluster.local:6379",
+      "db_host": "mariadb.erp-dev.svc.cluster.local:3306",
       "socketio_port": "9000"
     }
