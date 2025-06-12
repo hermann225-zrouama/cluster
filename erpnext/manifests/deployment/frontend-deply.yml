@@ -1,10 +1,9 @@
-
 # Frontend (Nginx)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frappe-frontend
-  namespace: erp
+  namespace: erp-dev
 spec:
   replicas: 1
   selector:
@@ -19,41 +18,47 @@ spec:
         fsGroup: 1000
         runAsUser: 1000
       containers:
-      - name: init
-        image: frappe/erpnext:v15.59.0
-        securityContext:
-          runAsUser: 1000
-          runAsGroup: 1000
-        command: ["nginx-entrypoint.sh"]
-        ports:
-        - containerPort: 8080
-        env:
-        - name: BACKEND
-          value: "frappe-backend:8000"
-        - name: FRAPPE_SITE_NAME_HEADER
-          value: "erp.amoaman.com"
-        - name: SOCKETIO
-          value: "frappe-websocket:9000"
-        - name: UPSTREAM_REAL_IP_ADDRESS
-          value: "127.0.0.1"
-        - name: UPSTREAM_REAL_IP_HEADER
-          value: "X-Forwarded-For"
-        - name: UPSTREAM_REAL_IP_RECURSIVE
-          value: "off"
-        - name: PROXY_READ_TIMEOUT
-          value: "120"
-        - name: CLIENT_MAX_BODY_SIZE
-          value: "50m"
-        volumeMounts:
-        - name: sites
-          mountPath: /home/frappe/frappe-bench/sites
-        - name: logs
-          mountPath: /home/frappe/frappe-bench/logs
+        - name: init
+          image: frappe/erpnext:v15.59.0
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          command: ["nginx-entrypoint.sh"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: BACKEND
+              value: "frappe-backend:8000"
+            - name: FRAPPE_SITE_NAME_HEADER
+              value: "erp-dev.amoaman.com"
+            - name: SOCKETIO
+              value: "frappe-websocket:9000"
+            - name: UPSTREAM_REAL_IP_ADDRESS
+              value: "127.0.0.1"
+            - name: UPSTREAM_REAL_IP_HEADER
+              value: "X-Forwarded-For"
+            - name: UPSTREAM_REAL_IP_RECURSIVE
+              value: "off"
+            - name: PROXY_READ_TIMEOUT
+              value: "120"
+            - name: CLIENT_MAX_BODY_SIZE
+              value: "50m"
+          volumeMounts:
+            - name: frappe
+              mountPath: /home/frappe/frappe-bench
+            - name: frappe-config-vol
+              mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
+              subPath: common_site_config.json
+
       volumes:
-      - name: sites
-        persistentVolumeClaim:
-          claimName: frappe-sites
-      - name: logs
-        persistentVolumeClaim:
-          claimName: frappe-logs
+        - name: frappe
+          persistentVolumeClaim:
+            claimName: frappe-bench
+        - name: frappe-config-vol
+          configMap:
+            name: frappe-config
+            items:
+              - key: common_site_config.json
+                path: common_site_config.json
 ---
+

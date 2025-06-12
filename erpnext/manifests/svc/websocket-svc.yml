@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frappe-websocket
-  namespace: erp
+  namespace: erp-dev
 spec:
   selector:
     app: frappe-websocket

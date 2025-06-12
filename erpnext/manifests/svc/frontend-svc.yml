@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frappe-frontend
-  namespace: erp
+  namespace: erp-dev
 spec:
   selector:
     app: frappe-frontend
@@ -10,5 +10,4 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 8080
-      nodePort: 31999
   type: NodePort

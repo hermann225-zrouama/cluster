@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frappe-worker-long
-  namespace: erp
+  namespace: erp-dev
 spec:
   replicas: 1
   selector:
@@ -26,7 +26,7 @@ spec:
         command: ["bench", "worker", "--queue", "long"]
         env:
         - name: DB_HOST
-          value: "mariadb.erp.svc.cluster.local"
+          value: "mariadb.erp-dev.svc.cluster.local"
         - name: DB_PORT
           value: "3306"
         - name: DB_NAME
@@ -41,16 +41,21 @@ spec:
               name: frappe-config
               key: redis_queue_url
         volumeMounts:
-        - name: sites
-          mountPath: /home/frappe/frappe-bench/sites
-        - name: logs
-          mountPath: /home/frappe/frappe-bench/logs
+          - name: frappe
+            mountPath: /home/frappe/frappe-bench
+          - name: frappe-config-vol
+            mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
+            subPath: common_site_config.json
+
       volumes:
-      - name: sites
+      - name: frappe
         persistentVolumeClaim:
-          claimName: frappe-sites
-      - name: logs
-        persistentVolumeClaim:
-          claimName: frappe-logs
+          claimName: frappe-bench
+      - name: frappe-config-vol
+        configMap:
+          name: frappe-config
+          items:
+            - key: common_site_config.json
+              path: common_site_config.json
 
 ---

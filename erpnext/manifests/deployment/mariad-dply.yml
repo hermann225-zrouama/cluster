@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mariadb
-  namespace: erp
+  namespace: erp-dev
 spec:
   replicas: 1
   selector:

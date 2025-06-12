@@ -1,10 +1,9 @@
-
-# Job d'initialisation du site (corrected)
+# Job d'initialisation du site (corrected for global PV)
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: frappe-init
-  namespace: erp
+  namespace: erp-dev
 spec:
   template:
     spec:
@@ -25,29 +24,86 @@ spec:
           # Export environment variables to ensure they are available
           export SITE_NAME="${SITE_NAME}"
           
-          wait-for-it -t 60 mariadb.erp.svc.cluster.local:3306 &&
-          wait-for-it -t 60 redis-cache.erp.svc.cluster.local:6379 &&
-          wait-for-it -t 60 redis-queue.erp.svc.cluster.local:6379 &&
+          wait-for-it -t 60 mariadb.erp-dev.svc.cluster.local:3306 &&
+          wait-for-it -t 60 redis-cache.erp-dev.svc.cluster.local:6379 &&
+          wait-for-it -t 60 redis-queue.erp-dev.svc.cluster.local:6379 &&
 
-          if [ -f "/home/frappe/frappe-bench/sites/${SITE_NAME}/site_config.json" ]; then
+          cd /home/frappe/frappe-bench
+
+          # Vérifier si frappe-bench est initialisé
+          if [ ! -d "/home/frappe/frappe-bench/apps" ]; then
+            echo "Initialisation de frappe-bench..."
+            
+            # Copier la structure frappe-bench depuis l'image vers le PV
+            if [ -d "/tmp/frappe-bench-template" ]; then
+              cp -r /tmp/frappe-bench-template/* /home/frappe/frappe-bench/
+            else
+              # Initialiser frappe-bench de base
+              mkdir -p apps sites logs config
+              
+              # Créer la structure de base
+              cp -r /home/frappe/frappe-bench-original/apps/* apps/ 2>/dev/null || true
+              cp -r /home/frappe/frappe-bench-original/config/* config/ 2>/dev/null || true
+              
+              # Si les répertoires source n'existent pas, utiliser bench init
+              if [ ! -d "apps/frappe" ]; then
+                echo "Initialisation complète avec bench init..."
+                cd /tmp
+                bench init frappe-bench-new --frappe-branch version-15
+                cp -r frappe-bench-new/* /home/frappe/frappe-bench/
+                cd /home/frappe/frappe-bench
+              fi
+            fi
+          fi
+
+          # S'assurer que nous sommes dans le bon répertoire
+          cd /home/frappe/frappe-bench
+
+          # Si le répertoire apps existe maintenant, créer apps.txt
+          if [ -d "apps" ]; then
+            ls -1 apps > sites/apps.txt
+          else
+            echo "Erreur: Le répertoire apps n'existe toujours pas"
+            ls -la /home/frappe/frappe-bench/
+            exit 1
+          fi
+
+          if [ -f "sites/${SITE_NAME}/site_config.json" ]; then
             echo "Le site ${SITE_NAME} existe déjà - installation des applications"
-            bench --site ${SITE_NAME} install-app erpnext
-            bench --site ${SITE_NAME} install-app hrms
+            
+            # Installer HRMS s'il n'est pas déjà présent
+            if [ ! -d "apps/hrms" ]; then
+              echo "Installation de l'app HRMS..."
+              bench get-app hrms
+            fi
+            
+            # Vérifier et installer les apps si nécessaire
+            bench --site ${SITE_NAME} install-app erpnext --force || true
+            bench --site ${SITE_NAME} install-app hrms --force || true
+            bench --site ${SITE_NAME} migrate
           else
             echo "Création du nouveau site ${SITE_NAME} avec ERPNext et Frappe HR"
-            mkdir -p /home/frappe/frappe-bench/sites
-            ls -1 /home/frappe/frappe-bench/apps > /home/frappe/frappe-bench/sites/apps.txt
+            
+            # S'assurer que le répertoire sites existe
+            mkdir -p sites
+            
+            # Installer HRMS avant de créer le site
+            if [ ! -d "apps/hrms" ]; then
+              echo "Installation de l'app HRMS..."
+              bench get-app hrms
+            fi
+            
+            # Mettre à jour apps.txt après installation de HRMS
+            ls -1 apps > sites/apps.txt
             
             bench new-site ${SITE_NAME} \
-              --db-host mariadb.erp.svc.cluster.local \
+              --db-host mariadb.erp-dev.svc.cluster.local \
               --mariadb-root-password="${DB_ROOT_PASSWORD}" \
               --admin-password="${ADMIN_PASSWORD}" \
               --install-app erpnext
-
-            
             
             # Check if site_config.json was created
-            SITE_CONFIG="/home/frappe/frappe-bench/sites/${SITE_NAME}/site_config.json"
+            SITE_CONFIG="sites/${SITE_NAME}/site_config.json"
             if [ ! -f "${SITE_CONFIG}" ]; then
               echo "Error: ${SITE_CONFIG} not found"
               exit 1
@@ -68,7 +124,7 @@ spec:
             echo "Extracted DB_PASSWORD: ${DB_PASSWORD}"
             
             # Grant privileges to the auto-generated user
-            mysql -h mariadb.erp.svc.cluster.local -u root -p"${DB_ROOT_PASSWORD}" -e \
+            mysql -h mariadb.erp-dev.svc.cluster.local -u root -p"${DB_ROOT_PASSWORD}" -e \
               "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_NAME}'@'%' IDENTIFIED BY '${DB_PASSWORD}'; FLUSH PRIVILEGES;" || {
               echo "Error: Failed to execute GRANT command"
               exit 1
@@ -76,14 +132,19 @@ spec:
             
             echo "Privileges granted successfully for ${DB_NAME}"
             
+            # Installer HRMS sur le nouveau site
+            echo "Installation de HRMS sur le site ${SITE_NAME}..."
+            bench --site ${SITE_NAME} install-app hrms
+            
             # Ensure common_site_config.json uses correct Redis URLs
-            echo '{"redis_queue": "redis://redis-queue.erp.svc.cluster.local:6379", "redis_socketio": "redis://redis-queue.erp.svc.cluster.local:6379", "redis_cache": "redis://redis-cache.erp.svc.cluster.local:6379"}' > /home/frappe/frappe-bench/sites/common_site_config.json
+            # echo '{"redis_queue": "redis://redis-queue.erp-dev.svc.cluster.local:6379", "redis_socketio": "redis://redis-queue.erp-dev.svc.cluster.local:6379", "redis_cache": "redis://redis-cache.erp-dev.svc.cluster.local:6379", "socketio_port":"9000"}' > sites/common_site_config.json
           fi
 
-          # installation de hrms
-          # bench get-app hrms
-          # bench --site ${SITE_NAME} install-app hrms
-          # bench --site ${SITE_NAME} migrate
+          echo "Initialisation terminée avec succès!"
+          echo "Structure finale du répertoire:"
+          ls -la /home/frappe/frappe-bench/
+          echo "Apps disponibles:"
+          ls -la /home/frappe/frappe-bench/apps/
         env:
         - name: SITE_NAME
           valueFrom:
@@ -101,17 +162,19 @@ spec:
               name: frappe-secrets
               key: admin_password
         volumeMounts:
-        - name: sites
-          mountPath: /home/frappe/frappe-bench/sites
-        - name: logs
-          mountPath: /home/frappe/frappe-bench/logs
+          - name: frappe
+            mountPath: /home/frappe/frappe-bench
+          - name: frappe-config-vol
+            mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
+            subPath: common_site_config.json
       restartPolicy: OnFailure
       volumes:
-      - name: sites
+      - name: frappe
         persistentVolumeClaim:
-          claimName: frappe-sites
-      - name: logs
-        persistentVolumeClaim:
-          claimName: frappe-logs
-
----
+          claimName: frappe-bench
+      - name: frappe-config-vol
+        configMap:
+          name: frappe-config
+          items:
+            - key: common_site_config.json
+              path: common_site_config.json
