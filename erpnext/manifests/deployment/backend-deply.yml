@@ -21,6 +21,7 @@ spec:
       containers:
       - name: init
         image: frappe/erpnext:v15.59.0
+        
         securityContext:
           runAsUser: 1000
           runAsGroup: 1000
@@ -52,6 +53,9 @@ spec:
           mountPath: /home/frappe/frappe-bench/sites
         - name: logs
           mountPath: /home/frappe/frappe-bench/logs
+        - name: frappe-config-vol
+          mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
+          subPath: common_site_config.json
       volumes:
       - name: sites
         persistentVolumeClaim:
@@ -59,4 +63,10 @@ spec:
       - name: logs
         persistentVolumeClaim:
           claimName: frappe-logs
+      - name: frappe-config-vol
+        configMap:
+          name: frappe-config
+          items:
+            - key: common_site_config.json
+              path: common_site_config.json
 ---
