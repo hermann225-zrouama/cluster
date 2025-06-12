@@ -4,5 +4,6 @@ resources:
 
 configMapGenerator:
   - name: mariadb-init
+    namespace: erp-dev
     files:
       - init.sql

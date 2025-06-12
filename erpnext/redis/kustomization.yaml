@@ -3,11 +3,11 @@ resources:
 
 configMapGenerator:
   - name: redis-config
-    namespace: erpnext
+    namespace: erp-dev
     files:
       - redis.conf
   - name: redis-queue-config
-    namespace: erpnext
+    namespace: erp-dev
     files:
       - queue.conf
   
