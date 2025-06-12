@@ -4,7 +4,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: frappe-init
-  namespace: erp
+  namespace: erp-dev
 spec:
   template:
     spec:
@@ -25,9 +25,9 @@ spec:
           # Export environment variables to ensure they are available
           export SITE_NAME="${SITE_NAME}"
           
-          wait-for-it -t 60 mariadb.erp.svc.cluster.local:3306 &&
-          wait-for-it -t 60 redis-cache.erp.svc.cluster.local:6379 &&
-          wait-for-it -t 60 redis-queue.erp.svc.cluster.local:6379 &&
+          wait-for-it -t 60 mariadb.erp-dev.svc.cluster.local:3306 &&
+          wait-for-it -t 60 redis-cache.erp-dev.svc.cluster.local:6379 &&
+          wait-for-it -t 60 redis-queue.erp-dev.svc.cluster.local:6379 &&
 
           if [ -f "/home/frappe/frappe-bench/sites/${SITE_NAME}/site_config.json" ]; then
             echo "Le site ${SITE_NAME} existe déjà - installation des applications"
@@ -39,7 +39,7 @@ spec:
             ls -1 /home/frappe/frappe-bench/apps > /home/frappe/frappe-bench/sites/apps.txt
             
             bench new-site ${SITE_NAME} \
-              --db-host mariadb.erp.svc.cluster.local \
+              --db-host mariadb.erp-dev.svc.cluster.local \
               --mariadb-root-password="${DB_ROOT_PASSWORD}" \
               --admin-password="${ADMIN_PASSWORD}" \
               --install-app erpnext
@@ -68,7 +68,7 @@ spec:
             echo "Extracted DB_PASSWORD: ${DB_PASSWORD}"
             
             # Grant privileges to the auto-generated user
-            mysql -h mariadb.erp.svc.cluster.local -u root -p"${DB_ROOT_PASSWORD}" -e \
+            mysql -h mariadb.erp-dev.svc.cluster.local -u root -p"${DB_ROOT_PASSWORD}" -e \
               "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_NAME}'@'%' IDENTIFIED BY '${DB_PASSWORD}'; FLUSH PRIVILEGES;" || {
               echo "Error: Failed to execute GRANT command"
               exit 1
@@ -77,7 +77,7 @@ spec:
             echo "Privileges granted successfully for ${DB_NAME}"
             
             # Ensure common_site_config.json uses correct Redis URLs
-            echo '{"redis_queue": "redis://redis-queue.erp.svc.cluster.local:6379", "redis_socketio": "redis://redis-queue.erp.svc.cluster.local:6379", "redis_cache": "redis://redis-cache.erp.svc.cluster.local:6379"}' > /home/frappe/frappe-bench/sites/common_site_config.json
+            echo '{"redis_queue": "redis://redis-queue.erp-dev.svc.cluster.local:6379", "redis_socketio": "redis://redis-queue.erp-dev.svc.cluster.local:6379", "redis_cache": "redis://redis-cache.erp-dev.svc.cluster.local:6379"}' > /home/frappe/frappe-bench/sites/common_site_config.json
           fi
 
           # installation de hrms
