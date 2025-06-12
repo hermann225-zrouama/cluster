@@ -10,7 +10,7 @@ data:
   redis_cache_url: "redis://redis-cache.erp-dev.svc.cluster.local:6379"
   redis_queue_url: "redis://redis-queue.erp-dev.svc.cluster.local:6379"
   db_host: "mariadb.erp-dev.svc.cluster.local"
-  common_site_config.json: |-
+  common_site_config.json: |
     {
       "redis_queue": "redis://redis-queue.erp-dev.svc.cluster.local:6379",
       "redis_socketio": "redis://redis-queue.erp-dev.svc.cluster.local:6379",
