@@ -42,22 +42,16 @@ spec:
               name: frappe-config
               key: redis_queue_url
         volumeMounts:
-        - name: sites
-          mountPath: /home/frappe/frappe-bench/sites
-        - name: logs
-          mountPath: /home/frappe/frappe-bench/logs
-        - name: frappe-config-vol
-          mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
-          subPath: common_site_config.json
+          - name: frappe
+            mountPath: /home/frappe/frappe-bench
+          - name: frappe-config-vol
+            mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
+            subPath: common_site_config.json
 
-  
       volumes:
-      - name: sites
+      - name: frappe
         persistentVolumeClaim:
-          claimName: frappe-sites
-      - name: logs
-        persistentVolumeClaim:
-          claimName: frappe-logs
+          claimName: frappe-bench
       - name: frappe-config-vol
         configMap:
           name: frappe-config
