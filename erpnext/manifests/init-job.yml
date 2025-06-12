@@ -45,7 +45,6 @@ spec:
               --install-app erpnext
 
             
-            
             # Check if site_config.json was created
             SITE_CONFIG="/home/frappe/frappe-bench/sites/${SITE_NAME}/site_config.json"
             if [ ! -f "${SITE_CONFIG}" ]; then
@@ -81,9 +80,9 @@ spec:
           fi
 
           # installation de hrms
-          # bench get-app hrms
-          # bench --site ${SITE_NAME} install-app hrms
-          # bench --site ${SITE_NAME} migrate
+          bench get-app hrms
+          bench --site ${SITE_NAME} install-app hrms
+          bench --site ${SITE_NAME} migrate
         env:
         - name: SITE_NAME
           valueFrom:
