@@ -32,7 +32,6 @@ spec:
           if [ -f "/home/frappe/frappe-bench/sites/${SITE_NAME}/site_config.json" ]; then
             echo "Le site ${SITE_NAME} existe déjà - installation des applications"
             bench --site ${SITE_NAME} install-app erpnext
-            bench --site ${SITE_NAME} install-app hrms
           else
             echo "Création du nouveau site ${SITE_NAME} avec ERPNext et Frappe HR"
             mkdir -p /home/frappe/frappe-bench/sites
