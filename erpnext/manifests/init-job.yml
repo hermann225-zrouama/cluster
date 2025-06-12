@@ -104,6 +104,8 @@ spec:
           mountPath: /home/frappe/frappe-bench/sites
         - name: logs
           mountPath: /home/frappe/frappe-bench/logs
+        - name: frappe-apps
+          mountPath: /home/frappe/frappe-bench/apps
         - name: frappe-config-vol
           mountPath: /home/frappe/frappe-bench/sites/common_site_config.json
           subPath: common_site_config.json
@@ -116,6 +118,9 @@ spec:
       - name: logs
         persistentVolumeClaim:
           claimName: frappe-logs
+      - name: frappe-apps
+        persistentVolumeClaim:
+          claimName: frappe-apps
       - name: frappe-config-vol
         configMap:
           name: frappe-config
