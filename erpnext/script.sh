@@ -73,10 +73,9 @@ sync_apps() {
     # Types de composants ERPNext qui ont besoin des apps (excluant mariadb et redis)
     COMPONENTS=(
         "gunicorn"
-        "worker-default" 
-        "worker-short"
-        "worker-long"
-        "scheduler"
+        "worker-d" 
+        "worker-s"
+        "worker-l"
         "socketio"
     )
     
