@@ -20,6 +20,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: frappe-bench-erpnext
+                name: erpnext
                 port:
                   number: 8080
