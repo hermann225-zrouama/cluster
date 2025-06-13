@@ -45,6 +45,6 @@ spec:
                 path: common_site_config.json
         - name: erpnext-storage
           persistentVolumeClaim:
-            claimName: erpnext-storage-v8
+            claimName: erpnext-storage
         - name: erpnext-logs
           emptyDir: {}
