@@ -51,55 +51,101 @@ deploy_erpnext() {
             --timeout 30m
     fi
     
-    log_info "Attente de la stabilisation des pods..."
-    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=$RELEASE_NAME -n $NAMESPACE --timeout=600s
+    log_info "Attente de la stabilisation des pods ERPNext..."
+    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=$RELEASE_NAME -l app.kubernetes.io/name=erpnext -n $NAMESPACE --timeout=600s
 }
 
-# Fonction pour synchroniser les apps sur tous les pods
+# Fonction pour obtenir les pods ERPNext uniquement (excluant MariaDB et Redis)
+get_erpnext_pods() {
+    local component=$1
+    kubectl get pods -l "app.kubernetes.io/instance=$RELEASE_NAME" \
+                     -l "app.kubernetes.io/name=erpnext" \
+                     -l "app.kubernetes.io/component=$component" \
+                     -n $NAMESPACE -o name 2>/dev/null || echo ""
+}
+
+# Fonction pour synchroniser les apps sur tous les pods ERPNext
 sync_apps() {
-    log_info "Synchronisation des apps sur tous les pods..."
+    log_info "Synchronisation des apps sur tous les pods ERPNext..."
     
     # Liste des apps à installer
     APPS=("hrms")
     
-    # Types de pods qui ont besoin des apps
-    POD_LABELS=(
-        "app.kubernetes.io/component=gunicorn"
-        "app.kubernetes.io/component=worker-default"
-        "app.kubernetes.io/component=worker-short"
-        "app.kubernetes.io/component=worker-long"
-        "app.kubernetes.io/component=scheduler"
+    # Types de composants ERPNext qui ont besoin des apps (excluant mariadb et redis)
+    COMPONENTS=(
+        "gunicorn"
+        "worker-default" 
+        "worker-short"
+        "worker-long"
+        "scheduler"
+        "socketio"
     )
     
-    for label in "${POD_LABELS[@]}"; do
-        log_info "Traitement des pods avec label: $label"
+    for component in "${COMPONENTS[@]}"; do
+        log_info "Traitement des pods du composant: $component"
         
-        pods=$(kubectl get pods -l "$label" -l "app.kubernetes.io/instance=$RELEASE_NAME" -n $NAMESPACE -o name)
+        pods=$(get_erpnext_pods "$component")
+        
+        if [ -z "$pods" ]; then
+            log_warn "Aucun pod trouvé pour le composant $component, essai avec des labels alternatifs..."
+            # Fallback pour les noms de pods qui pourraient être différents
+            pods=$(kubectl get pods -l "app.kubernetes.io/instance=$RELEASE_NAME" -n $NAMESPACE -o name | grep -E "(gunicorn|worker|scheduler|socketio)" | grep -v -E "(mariadb|redis)" || echo "")
+        fi
         
         for pod in $pods; do
             pod_name=$(basename $pod)
+            
+            # Vérifier que ce n'est pas un pod MariaDB ou Redis
+            if echo "$pod_name" | grep -qE "(mariadb|redis)"; then
+                log_info "Ignorer le pod $pod_name (base de données/cache)"
+                continue
+            fi
+            
             log_info "Synchronisation des apps sur le pod: $pod_name"
             
             # Vérification que le pod est prêt
             if kubectl wait --for=condition=ready $pod -n $NAMESPACE --timeout=60s; then
+                
+                # Vérifier que bench est disponible
+                if ! kubectl exec $pod -n $NAMESPACE -- which bench >/dev/null 2>&1; then
+                    log_warn "Bench non trouvé sur $pod_name, c'est probablement un pod non-ERPNext, ignoré"
+                    continue
+                fi
+                
+                # Vérifier que le répertoire frappe-bench existe
+                if ! kubectl exec $pod -n $NAMESPACE -- test -d /home/frappe/frappe-bench >/dev/null 2>&1; then
+                    log_warn "Répertoire frappe-bench non trouvé sur $pod_name, ignoré"
+                    continue
+                fi
+                
                 # Installation des apps
                 for app in "${APPS[@]}"; do
                     log_info "Vérification de l'app $app sur $pod_name..."
                     
                     # Vérifier si l'app existe déjà
-                    if ! kubectl exec $pod -n $NAMESPACE -- ls /home/frappe/frappe-bench/apps/$app >/dev/null 2>&1; then
+                    if ! kubectl exec $pod -n $NAMESPACE -- test -d /home/frappe/frappe-bench/apps/$app >/dev/null 2>&1; then
                         log_info "Installation de $app sur $pod_name..."
-                        kubectl exec $pod -n $NAMESPACE -- bench get-app $app || log_warn "Échec de l'installation de $app sur $pod_name"
+                        if kubectl exec $pod -n $NAMESPACE -- bench get-app $app; then
+                            log_info "✓ $app installée avec succès sur $pod_name"
+                        else
+                            log_warn "✗ Échec de l'installation de $app sur $pod_name"
+                        fi
                     else
-                        log_info "$app déjà présente sur $pod_name"
+                        log_info "✓ $app déjà présente sur $pod_name"
                     fi
                 done
                 
-                # Installation des apps sur le site
-                log_info "Installation des apps sur le site pour $pod_name..."
-                for app in "${APPS[@]}"; do
-                    kubectl exec $pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com install-app $app 2>/dev/null || log_warn "$app déjà installée sur le site"
-                done
+                # Installation des apps sur le site (uniquement pour gunicorn pour éviter les conflits)
+                if echo "$component" | grep -q "gunicorn"; then
+                    log_info "Installation des apps sur le site pour $pod_name..."
+                    for app in "${APPS[@]}"; do
+                        if kubectl exec $pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com install-app $app 2>/dev/null; then
+                            log_info "✓ $app installée sur le site via $pod_name"
+                        else
+                            log_warn "✗ $app déjà installée sur le site ou erreur"
+                        fi
+                    done
+                fi
                 
             else
                 log_error "Pod $pod_name n'est pas prêt, passage au suivant"
@@ -109,9 +155,22 @@ sync_apps() {
     
     # Migration finale
     log_info "Exécution de la migration finale..."
-    gunicorn_pod=$(kubectl get pods -l "app.kubernetes.io/component=gunicorn" -l "app.kubernetes.io/instance=$RELEASE_NAME" -n $NAMESPACE -o name | head -1)
-    if [ -n "$gunicorn_pod" ]; then
-        kubectl exec $gunicorn_pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com migrate || log_warn "Migration échouée"
+    gunicorn_pods=$(get_erpnext_pods "gunicorn")
+    if [ -z "$gunicorn_pods" ]; then
+        # Fallback
+        gunicorn_pods=$(kubectl get pods -l "app.kubernetes.io/instance=$RELEASE_NAME" -n $NAMESPACE -o name | grep gunicorn | head -1)
+    fi
+    
+    if [ -n "$gunicorn_pods" ]; then
+        gunicorn_pod=$(echo "$gunicorn_pods" | head -1)
+        log_info "Utilisation du pod $gunicorn_pod pour la migration..."
+        if kubectl exec $gunicorn_pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com migrate; then
+            log_info "✓ Migration réussie"
+        else
+            log_warn "✗ Migration échouée"
+        fi
+    else
+        log_error "Aucun pod gunicorn trouvé pour la migration"
     fi
 }
 
@@ -119,35 +178,71 @@ sync_apps() {
 check_apps_status() {
     log_info "Vérification de l'état des apps..."
     
-    gunicorn_pod=$(kubectl get pods -l "app.kubernetes.io/component=gunicorn" -l "app.kubernetes.io/instance=$RELEASE_NAME" -n $NAMESPACE -o name | head -1)
+    # Chercher un pod gunicorn
+    gunicorn_pods=$(get_erpnext_pods "gunicorn")
+    if [ -z "$gunicorn_pods" ]; then
+        gunicorn_pods=$(kubectl get pods -l "app.kubernetes.io/instance=$RELEASE_NAME" -n $NAMESPACE -o name | grep gunicorn | head -1)
+    fi
     
-    if [ -n "$gunicorn_pod" ]; then
+    if [ -n "$gunicorn_pods" ]; then
+        gunicorn_pod=$(echo "$gunicorn_pods" | head -1)
+        log_info "Utilisation du pod $(basename $gunicorn_pod) pour la vérification..."
+        
         log_info "Apps installées sur le site:"
-        kubectl exec $gunicorn_pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com list-apps
+        kubectl exec $gunicorn_pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com list-apps || log_warn "Impossible de lister les apps"
         
         log_info "État des services:"
-        kubectl exec $gunicorn_pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com doctor || true
+        kubectl exec $gunicorn_pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com doctor || log_warn "Bench doctor échoué"
+        
+        log_info "Statut des sites:"
+        kubectl exec $gunicorn_pod -n $NAMESPACE -- bench --site erp-dev.amoaman.com version || log_warn "Impossible d'obtenir la version"
+        
     else
         log_error "Aucun pod gunicorn trouvé"
+        log_info "Pods disponibles:"
+        kubectl get pods -l "app.kubernetes.io/instance=$RELEASE_NAME" -n $NAMESPACE
     fi
 }
 
-# Fonction pour redémarrer tous les workers
+# Fonction pour redémarrer tous les workers ERPNext
 restart_workers() {
-    log_info "Redémarrage de tous les workers..."
+    log_info "Redémarrage de tous les workers ERPNext..."
     
-    kubectl rollout restart deployment/$RELEASE_NAME-gunicorn -n $NAMESPACE
-    kubectl rollout restart deployment/$RELEASE_NAME-worker-default -n $NAMESPACE
-    kubectl rollout restart deployment/$RELEASE_NAME-worker-short -n $NAMESPACE
-    kubectl rollout restart deployment/$RELEASE_NAME-worker-long -n $NAMESPACE
-    kubectl rollout restart deployment/$RELEASE_NAME-scheduler -n $NAMESPACE
+    # Noms des déploiements ERPNext (pas MariaDB/Redis)
+    DEPLOYMENTS=(
+        "$RELEASE_NAME-gunicorn"
+        "$RELEASE_NAME-worker-default"
+        "$RELEASE_NAME-worker-short" 
+        "$RELEASE_NAME-worker-long"
+        "$RELEASE_NAME-scheduler"
+        "$RELEASE_NAME-socketio"
+        "$RELEASE_NAME-nginx"
+    )
+    
+    for deployment in "${DEPLOYMENTS[@]}"; do
+        if kubectl get deployment "$deployment" -n $NAMESPACE >/dev/null 2>&1; then
+            log_info "Redémarrage de $deployment..."
+            kubectl rollout restart deployment/$deployment -n $NAMESPACE
+        else
+            log_warn "Déploiement $deployment non trouvé, ignoré"
+        fi
+    done
     
     log_info "Attente de la stabilisation des redémarrages..."
-    kubectl rollout status deployment/$RELEASE_NAME-gunicorn -n $NAMESPACE
-    kubectl rollout status deployment/$RELEASE_NAME-worker-default -n $NAMESPACE
-    kubectl rollout status deployment/$RELEASE_NAME-worker-short -n $NAMESPACE
-    kubectl rollout status deployment/$RELEASE_NAME-worker-long -n $NAMESPACE
-    kubectl rollout status deployment/$RELEASE_NAME-scheduler -n $NAMESPACE
+    for deployment in "${DEPLOYMENTS[@]}"; do
+        if kubectl get deployment "$deployment" -n $NAMESPACE >/dev/null 2>&1; then
+            kubectl rollout status deployment/$deployment -n $NAMESPACE --timeout=300s || log_warn "Timeout pour $deployment"
+        fi
+    done
+}
+
+# Fonction pour afficher les pods et leurs rôles
+list_pods() {
+    log_info "Liste des pods dans le namespace $NAMESPACE:"
+    kubectl get pods -l "app.kubernetes.io/instance=$RELEASE_NAME" -n $NAMESPACE -o wide
+    
+    log_info "Pods ERPNext (avec bench):"
+    kubectl get pods -l "app.kubernetes.io/instance=$RELEASE_NAME" -l "app.kubernetes.io/name=erpnext" -n $NAMESPACE 2>/dev/null || log_warn "Aucun pod avec le label app.kubernetes.io/name=erpnext trouvé"
 }
 
 # Fonction principale
@@ -176,15 +271,19 @@ main() {
         "status")
             check_apps_status
             ;;
+        "list-pods")
+            list_pods
+            ;;
         *)
-            echo "Usage: $0 {install|upgrade|sync-apps|restart|status}"
+            echo "Usage: $0 {install|upgrade|sync-apps|restart|status|list-pods}"
             echo ""
             echo "Commands:"
             echo "  install    - Installation complète d'ERPNext avec apps"
             echo "  upgrade    - Mise à jour d'ERPNext avec synchronisation des apps"
-            echo "  sync-apps  - Synchronise les apps sur tous les pods existants"
-            echo "  restart    - Redémarre tous les workers"
+            echo "  sync-apps  - Synchronise les apps sur tous les pods ERPNext uniquement"
+            echo "  restart    - Redémarre tous les workers ERPNext"
             echo "  status     - Vérifie l'état des apps installées"
+            echo "  list-pods  - Liste tous les pods et leurs rôles"
             exit 1
             ;;
     esac
