@@ -58,7 +58,7 @@ deploy_erpnext() {
 # Fonction pour obtenir les pods ERPNext uniquement (excluant MariaDB et Redis)
 get_erpnext_pods() {
     local component=$1
-    kubectl get pods -n $NAMESPACE -l "app.kubernetes.io/instance=$RELEASE_NAME" -o name \
+    kubectl get pods -n $NAMESPACE -o name \
         | grep "$component" || echo ""
 }
 
@@ -72,11 +72,11 @@ sync_apps() {
     
     # Types de composants ERPNext qui ont besoin des apps (excluant mariadb et redis)
     COMPONENTS=(
-        "gunicorn"
-        "worker-d" 
-        "worker-s"
-        "worker-l"
-        "socketio"
+        "erpnext-gunicorn"
+        "erpnext-worker-d" 
+        "erpnext-worker-s"
+        "erpnext-worker-l"
+        "erpnext-socketio"
     )
     
     for component in "${COMPONENTS[@]}"; do
