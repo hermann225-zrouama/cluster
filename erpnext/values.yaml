@@ -81,8 +81,8 @@ worker:
         memory: "200Mi"
         cpu: "100m"
       limits:
-        memory: "4Gi"
-        cpu: "1000m"
+        memory: "8Gi"  # Augmenté temporairement
+        cpu: "4000m"   # Augmenté temporairement
     autoscaling:
       enabled: true
       minReplicas: 2
@@ -97,8 +97,8 @@ worker:
         memory: "512Mi"
         cpu: "100m"
       limits:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "8Gi"  # Augmenté temporairement
+        cpu: "4000m"   # Augmenté temporairement
     autoscaling:
       enabled: true
       minReplicas: 2
@@ -112,8 +112,8 @@ worker:
         memory: "512Mi"
         cpu: "100m"
       limits:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "8Gi"  # Augmenté temporairement
+        cpu: "4000m"   # Augmenté temporairement
 
   long:
     replicaCount: 1
@@ -122,8 +122,8 @@ worker:
         memory: "1Gi"
         cpu: "100m"
       limits:
-        memory: "2Gi"
-        cpu: "1000m"
+        memory: "8Gi"  # Augmenté temporairement
+        cpu: "4000m"   # Augmenté temporairement
 
   scheduler:
     replicaCount: 1
@@ -132,8 +132,8 @@ worker:
         memory: "512Mi"
         cpu: "250m"
       limits:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "8Gi"  # Augmenté temporairement
+        cpu: "4000m"   # Augmenté temporairement
 
 # Configuration Nginx
 nginx:
@@ -143,8 +143,8 @@ nginx:
       memory: "128Mi"
       cpu: "100m"
     limits:
-      memory: "256Mi"
-      cpu: "200m"
+      memory: "8Gi"  # Augmenté temporairement
+      cpu: "2000m"   # Augmenté temporairement
   environment:
     clientMaxBodySize: "50m"
     proxyReadTimeout: "300"
@@ -162,8 +162,8 @@ socketio:
       memory: "256Mi"
       cpu: "100m"
     limits:
-      memory: "512Mi"
-      cpu: "200m"
+      memory: "8Gi"  # Augmenté temporairement
+      cpu: "4000m"   # Augmenté temporairement
   autoscaling:
     enabled: true
     minReplicas: 2
