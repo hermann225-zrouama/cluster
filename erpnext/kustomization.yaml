@@ -10,5 +10,6 @@ resources:
 
 configMapGenerator:
   - name: erpnext-config
+    namespace: erp-dev
     files:
       - ./common_site_config.json
