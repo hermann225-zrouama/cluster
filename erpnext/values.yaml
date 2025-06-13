@@ -75,7 +75,7 @@ redis-queue:
 # Configuration des workers
 worker:
   gunicorn:
-    replicaCount: 2
+    replicaCount: 1
     resources:
       requests:
         memory: "200Mi"
@@ -84,14 +84,14 @@ worker:
         memory: "8Gi"  # Augmenté temporairement
         cpu: "4000m"   # Augmenté temporairement
     autoscaling:
-      enabled: true
+      enabled: false
       minReplicas: 2
       maxReplicas: 5
       targetCPU: 70
       targetMemory: 80
 
   default:
-    replicaCount: 2
+    replicaCount: 1
     resources:
       requests:
         memory: "512Mi"
@@ -100,13 +100,13 @@ worker:
         memory: "8Gi"  # Augmenté temporairement
         cpu: "4000m"   # Augmenté temporairement
     autoscaling:
-      enabled: true
+      enabled: false
       minReplicas: 2
       maxReplicas: 4
       targetCPU: 75
 
   short:
-    replicaCount: 2
+    replicaCount: 1
     resources:
       requests:
         memory: "512Mi"
@@ -137,7 +137,7 @@ worker:
 
 # Configuration Nginx
 nginx:
-  replicaCount: 2
+  replicaCount: 1
   resources:
     requests:
       memory: "128Mi"
@@ -149,14 +149,14 @@ nginx:
     clientMaxBodySize: "50m"
     proxyReadTimeout: "300"
   autoscaling:
-    enabled: true
+    enabled: false
     minReplicas: 2
     maxReplicas: 4
     targetCPU: 75
 
 # Configuration SocketIO
 socketio:
-  replicaCount: 2
+  replicaCount: 1
   resources:
     requests:
       memory: "256Mi"
@@ -165,7 +165,7 @@ socketio:
       memory: "8Gi"  # Augmenté temporairement
       cpu: "4000m"   # Augmenté temporairement
   autoscaling:
-    enabled: true
+    enabled: false
     minReplicas: 2
     maxReplicas: 3
     targetCPU: 75
