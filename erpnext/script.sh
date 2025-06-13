@@ -58,11 +58,10 @@ deploy_erpnext() {
 # Fonction pour obtenir les pods ERPNext uniquement (excluant MariaDB et Redis)
 get_erpnext_pods() {
     local component=$1
-    kubectl get pods -l "app.kubernetes.io/instance=$RELEASE_NAME" \
-                     -l "app.kubernetes.io/name=erpnext" \
-                     -l "app.kubernetes.io/component=$component" \
-                     -n $NAMESPACE -o name 2>/dev/null || echo ""
+    kubectl get pods -n $NAMESPACE -l "app.kubernetes.io/instance=$RELEASE_NAME" -o name \
+        | grep "$component" || echo ""
 }
+
 
 # Fonction pour synchroniser les apps sur tous les pods ERPNext
 sync_apps() {
