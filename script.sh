@@ -60,7 +60,7 @@ sync_apps() {
     log_info "Synchronisation des apps sur tous les pods..."
     
     # Liste des apps à installer
-    APPS=("hrms" "payments" "ecommerce_integrations")
+    APPS=("hrms")
     
     # Types de pods qui ont besoin des apps
     POD_LABELS=(
