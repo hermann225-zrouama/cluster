@@ -3,8 +3,8 @@
 
 # Configuration de l'image
 image:
-  repository: "frappe/erpnext"
-  tag: "v15.65.1"
+  repository: "arnadeem/erpnext-hrms"
+  tag: "latest"
   pullPolicy: "IfNotPresent"
 
 # Configuration du nom
