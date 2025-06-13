@@ -1,9 +1,0 @@
-resources:
-  - pvc.yaml
-  - db.yaml
-
-configMapGenerator:
-  - name: mariadb-init
-    namespace: erp-dev
-    files:
-      - init.sql

@@ -1,0 +1,251 @@
+# Configuration personnalisée pour ERPNext
+# Remplacez les valeurs selon votre environnement
+
+# Configuration de l'image
+image:
+  repository: "frappe/erpnext"
+  tag: "v15.65.1"
+  pullPolicy: "IfNotPresent"
+
+# Configuration du nom
+nameOverride: "erpnext"
+fullnameOverride: "erpnext"
+
+# Configuration de l'ingress - DÉSACTIVÉ car vous utilisez votre propre ingress YAML
+ingress:
+  enabled: false
+  # Votre ingress sera créé séparément avec le fichier fourni
+
+# Configuration du stockage persistant
+persistence:
+  worker:
+    enabled: true
+    storageClass: "longhorn"  # Changez selon votre classe de stockage
+    size: "5Gi"
+    accessModes:
+      - ReadWriteMany
+  logs:
+    enabled: true
+    storageClass: "longhorn"  # Changez selon votre classe de stockage
+    size: "5Gi"
+    accessModes:
+      - ReadWriteMany
+
+# Configuration de la base de données MariaDB
+mariadb:
+  enabled: true
+  auth:
+    rootPassword: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
+    username: "erpnext"
+    password: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
+    database: "erpnext"
+    replicationPassword: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
+  primary:
+    extraFlags: "--skip-character-set-client-handshake --skip-innodb-read-only-compressed --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci"
+    service:
+      ports:
+        mysql: 3306
+    persistence:
+      enabled: true
+      size: "5Gi"
+      storageClass: "longhorn"  # Changez selon votre classe de stockage
+
+# Configuration Redis pour le cache
+redis-cache:
+  enabled: true
+  architecture: "standalone"
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: "1Gi"
+
+# Configuration Redis pour les queues
+redis-queue:
+  enabled: true
+  architecture: "standalone"
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: "1Gi"
+
+# Configuration des workers
+worker:
+  gunicorn:
+    replicaCount: 2
+    resources:
+      requests:
+        memory: "200Mi"
+        cpu: "100m"
+      limits:
+        memory: "4Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPU: 70
+      targetMemory: 80
+
+  default:
+    replicaCount: 2
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 4
+      targetCPU: 75
+
+  short:
+    replicaCount: 2
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+  long:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "100m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
+  scheduler:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+# Configuration Nginx
+nginx:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  environment:
+    clientMaxBodySize: "50m"
+    proxyReadTimeout: "300"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPU: 75
+
+# Configuration SocketIO
+socketio:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "200m"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 3
+    targetCPU: 75
+
+# Jobs de configuration
+jobs:
+  # Job pour créer un nouveau site
+  createSite:
+    enabled: true
+    siteName: "erp-dev.amoaman.com"  # Correspondant à votre domaine
+    adminPassword: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
+    dbType: "mariadb"
+    installApps:
+      - "erpnext"
+      - "hrms"  # Module RH
+      - "payments"  # Module de paiement
+    forceCreate: false
+
+  # Job de configuration
+  configure:
+    enabled: true
+    fixVolume: true
+
+  # Job de sauvegarde (optionnel)
+  backup:
+    enabled: false
+    siteName: "erp-dev.amoaman.com"  # Correspondant à votre domaine
+    withFiles: true
+    push:
+      enabled: false
+      # Décommentez et configurez pour la sauvegarde S3
+      # bucket: "erpnext-backups"
+      # region: "us-east-1"
+      # accessKey: "VOTRE_ACCESS_KEY"
+      # secretKey: "VOTRE_SECRET_KEY"
+      # endpoint: "https://s3.amazonaws.com"
+
+  # Job de migration (si nécessaire)
+  migrate:
+    enabled: false
+    siteName: "erp-dev.amoaman.com"  # Correspondant à votre domaine
+    skipFailing: false
+
+  # Permissions des volumes
+  volumePermissions:
+    enabled: true
+
+# Configuration de sécurité
+podSecurityContext:
+  supplementalGroups: [1000]
+
+securityContext:
+  capabilities:
+    add: ["CAP_CHOWN"]
+
+# Service Account
+serviceAccount:
+  create: true
+  name: "erpnext-sa"
+
+# Variables d'environnement additionnelles (optionnel)
+# worker:
+#   gunicorn:
+#     envVars:
+#       - name: "FRAPPE_SITE_NAME_HEADER"
+#         value: "$host"
+#       - name: "DEVELOPER_MODE"
+#         value: "0"
+
+# Configuration pour les modules personnalisés
+# Décommentez et modifiez selon vos besoins
+# initContainers:
+#   - name: custom-apps
+#     image: alpine/git
+#     command:
+#       - /bin/sh
+#       - -c
+#       - |
+#         cd /home/frappe/frappe-bench/apps
+#         git clone https://github.com/votre-compte/votre-app-custom.git
+#     volumeMounts:
+#       - name: sites-dir
+#         mountPath: /home/frappe/frappe-bench
