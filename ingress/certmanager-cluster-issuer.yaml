@@ -25,7 +25,6 @@ spec:
     email: fzrouama@amoaman.com
     privateKeySecretRef:
       name: letsencrypt-staging
-      namespace: cert-manager
     solvers:
     - http01:
         ingress:
