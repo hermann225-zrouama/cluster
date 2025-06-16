@@ -11,7 +11,7 @@ spec:
   tls:
     - hosts:
         - erp-sith.amoaman.com
-      secretName: erp-tls-cert # Cert-Manager créera ce secret automatiquement
+      secretName: erp-sith-tls-cert # Cert-Manager créera ce secret automatiquement
   rules:
     - host: erp-sith.amoaman.com
       http:
