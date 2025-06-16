@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mysql
-  namespace: active-flow
+  namespace: voting
 spec:
   type: NodePort
   selector:
@@ -10,14 +10,14 @@ spec:
   ports:
     - port: 3306       # Port sur le service
       targetPort: 3306 # Port sur le pod
-      nodePort: 30306  # Port sur le noeud (optionnel, sinon Kubernetes en choisit un automatiquement)
+      nodePort: 30307  # Port sur le noeud (optionnel, sinon Kubernetes en choisit un automatiquement)
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-  namespace: active-flow
+  namespace: voting
 spec:
   selector:
     matchLabels:
@@ -31,8 +31,8 @@ spec:
     spec:
       resources:
         requests:
-          memory: "512Mi"
-          cpu: "500m"
+          memory: "128Mi"
+          cpu: "100m"
         limits:
           memory: "1Gi"
           cpu: "1"
