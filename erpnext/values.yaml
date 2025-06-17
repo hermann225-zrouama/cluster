@@ -3,7 +3,7 @@
 
 # Configuration de l'image
 image:
-  repository: "arnadeem/erpnext-hrms"
+  repository: "zetsu225/erpnext-image"
   tag: "latest"
   pullPolicy: "IfNotPresent"
 
