@@ -5,7 +5,7 @@
 image:
   repository: "zetsu225/erpnext-image"
   tag: "latest"
-  pullPolicy: "IfNotPresent"
+  pullPolicy: "always"  # Toujours tirer la dernière image
 
 # Configuration du nom
 nameOverride: "erpnext"
@@ -175,13 +175,14 @@ jobs:
   # Job pour créer un nouveau site
   createSite:
     enabled: true
-    siteName: "erp-test.amoaman.com"  # Correspondant à votre domaine
+    siteName: "erp-sith.amoaman.com"  # Correspondant à votre domaine
     adminPassword: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
     dbType: "mariadb"
     installApps:
       - "erpnext"
       - "hrms"  # Module RH
       - "payments"  # Module de paiement
+      - "trans_ms"  # Module de gestion des transactions
     forceCreate: false
 
   # Job de configuration
@@ -192,7 +193,7 @@ jobs:
   # Job de sauvegarde (optionnel)
   backup:
     enabled: false
-    siteName: "erp-test.amoaman.com"  # Correspondant à votre domaine
+    siteName: "erp-sith.amoaman.com"  # Correspondant à votre domaine
     withFiles: true
     push:
       enabled: false
@@ -206,7 +207,7 @@ jobs:
   # Job de migration (si nécessaire)
   migrate:
     enabled: false
-    siteName: "erp-test.amoaman.com"  # Correspondant à votre domaine
+    siteName: "erp-sith.amoaman.com"  # Correspondant à votre domaine
     skipFailing: false
 
   # Permissions des volumes
