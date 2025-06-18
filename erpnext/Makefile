@@ -1,10 +1,10 @@
 # Makefile pour ERPNext Helm
 
 # Variables
-IMAGE_NAME=zetsu225/erpnext-image
+IMAGE_NAME=zetsu225/erpnext-sith
 TAG=latest
 HELM_RELEASE=frappe-bench
-NAMESPACE=erp-testing
+NAMESPACE=erp-sith
 VALUES_FILE=values.yaml
 
 .PHONY: help build push deploy upgrade status logs clean
