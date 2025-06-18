@@ -5,7 +5,7 @@
 image:
   repository: "zetsu225/erpnext-image"
   tag: "latest"
-  pullPolicy: "always"  # Toujours tirer la dernière image
+  pullPolicy: "Always"  # Toujours tirer la dernière image
 
 # Configuration du nom
 nameOverride: "erpnext"
