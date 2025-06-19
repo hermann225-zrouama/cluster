@@ -12,6 +12,7 @@ CUSTOM_APPS=(
     "https://github.com/frappe/hrms.git"  # Déjà inclus dans votre config
     "https://github.com/frappe/payments.git"  # Déjà inclus dans votre config
     "https://github.com/aakvatech/transport.git"
+    "https://github.com/fousco74/grc_module.git"
     # Ajoutez d'autres applications selon vos besoins
 )
 

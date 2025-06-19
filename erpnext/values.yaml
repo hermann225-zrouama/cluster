@@ -3,7 +3,7 @@
 
 # Configuration de l'image
 image:
-  repository: "zetsu225/erpnext-sith"
+  repository: "zetsu225/erpnext"
   tag: "latest"
   pullPolicy: "Always"  # Toujours tirer la dernière image
 
@@ -183,6 +183,7 @@ jobs:
       - "hrms"  # Module RH
       - "payments"  # Module de paiement
       - "trans_ms"  # Module de gestion des transactions
+      - "grc_module"
     forceCreate: false
 
   # Job de configuration
