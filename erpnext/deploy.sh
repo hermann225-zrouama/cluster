@@ -4,10 +4,10 @@
 set -e
 
 # Variables
-IMAGE_NAME="zetsu225/erpnext-test"
+IMAGE_NAME="zetsu225/erpnext"
 TAG="latest"
 HELM_RELEASE="frappe-bench"
-NAMESPACE="erp-test"
+NAMESPACE="erp"
 VALUES_FILE="values.yaml"
 
 echo "=== Déploiement ERPNext avec image personnalisée ==="
@@ -45,4 +45,4 @@ echo "4. Vérification du déploiement..."
 kubectl get pods -n ${NAMESPACE} -l app.kubernetes.io/name=erpnext
 
 echo "=== Déploiement terminé ==="
-echo "Accédez à votre ERPNext via: https://erp-test.amoaman.com"
+echo "Accédez à votre ERPNext via: https://erp.amoaman.com"
