@@ -8,4 +8,4 @@ kubectl -n erp-test exec -it erpnext-gunicorn-xxxx -- bash
 bench --site $SITE_NAME migrate --skip-failing
 
 # 3- Uninstall ERPNext with Helm
-helm uninstall frappe-bench -n erp-test
+ 
