@@ -4,10 +4,10 @@
 set -e
 
 # Variables
-IMAGE_NAME="zetsu225/erpnext-image"
+IMAGE_NAME="zetsu225/erpnext-test"
 TAG="latest"
 HELM_RELEASE="frappe-bench"
-NAMESPACE="erp-testing"
+NAMESPACE="erp-test"
 VALUES_FILE="values.yaml"
 
 echo "=== Déploiement ERPNext avec image personnalisée ==="

@@ -3,7 +3,7 @@
 
 # Configuration de l'image
 image:
-  repository: "zetsu225/erpnext-sith"
+  repository: "zetsu225/erpnext-test"
   tag: "latest"
   pullPolicy: "Always"  # Toujours tirer la dernière image
 
@@ -175,7 +175,7 @@ jobs:
   # Job pour créer un nouveau site
   createSite:
     enabled: true
-    siteName: "erp-sith.amoaman.com"  # Correspondant à votre domaine
+    siteName: "erp-test.amoaman.com"  # Correspondant à votre domaine
     adminPassword: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
     dbType: "mariadb"
     installApps:
@@ -193,7 +193,7 @@ jobs:
   # Job de sauvegarde (optionnel)
   backup:
     enabled: false
-    siteName: "erp-sith.amoaman.com"  # Correspondant à votre domaine
+    siteName: "erp-test.amoaman.com"  # Correspondant à votre domaine
     withFiles: true
     push:
       enabled: false
@@ -207,7 +207,7 @@ jobs:
   # Job de migration (si nécessaire)
   migrate:
     enabled: false
-    siteName: "erp-sith.amoaman.com"  # Correspondant à votre domaine
+    siteName: "erp-test.amoaman.com"  # Correspondant à votre domaine
     skipFailing: false
 
   # Permissions des volumes
