@@ -3,7 +3,7 @@
 
 # Configuration de l'image
 image:
-  repository: "zetsu225/erpnext-test"
+  repository: "zetsu225/erpnext"
   tag: "latest"
   pullPolicy: "Always"  # Toujours tirer la dernière image
 
