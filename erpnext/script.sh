@@ -8,4 +8,5 @@ kubectl -n erp exec -it erpnext-gunicorn-xxxx -- bash
 bench --site erp.amoaman.com migrate --skip-failing
 
 # 3- Uninstall ERPNext with Helm
- 
+helm uninstall frappe-bench -n erp-allobs
+kubectl delete pvc --all -n erp-allobs
