@@ -10,10 +10,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - erp.amoaman.com
+        - allobs.amoaman.com
       secretName: erp-tls-cert-1 # Cert-Manager créera ce secret automatiquement
   rules:
-    - host: erp.amoaman.com
+    - host: allobs.amoaman.com
       http:
         paths:
           - path: /

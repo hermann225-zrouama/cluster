@@ -3,7 +3,7 @@
 
 # Configuration de l'image
 image:
-  repository: "zetsu225/erpnext-test"
+  repository: "zetsu225/erpnext"
   tag: "latest"
   pullPolicy: "Always"  # Toujours tirer la dernière image
 
@@ -35,11 +35,11 @@ persistence:
 mariadb:
   enabled: true
   auth:
-    rootPassword: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
+    rootPassword: "AlloBs@2025"  # CHANGEZ CE MOT DE PASSE
     username: "erpnext"
-    password: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
+    password: "AlloBs@2025"  # CHANGEZ CE MOT DE PASSE
     database: "erpnext"
-    replicationPassword: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
+    replicationPassword: "AlloBs@2025"  # CHANGEZ CE MOT DE PASSE
   primary:
     extraFlags: "--skip-character-set-client-handshake --skip-innodb-read-only-compressed --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci"
     service:
@@ -175,8 +175,8 @@ jobs:
   # Job pour créer un nouveau site
   createSite:
     enabled: true
-    siteName: "erp.amoaman.com"  # Correspondant à votre domaine
-    adminPassword: "Amoaman@2025"  # CHANGEZ CE MOT DE PASSE
+    siteName: "allobs.amoaman.com"  # Correspondant à votre domaine
+    adminPassword: "AlloBs@2025"  # CHANGEZ CE MOT DE PASSE
     dbType: "mariadb"
     installApps:
       - "erpnext"
@@ -193,7 +193,7 @@ jobs:
   # Job de sauvegarde (optionnel)
   backup:
     enabled: false
-    siteName: "erp.amoaman.com"  # Correspondant à votre domaine
+    siteName: "allobs.amoaman.com"  # Correspondant à votre domaine
     withFiles: true
     push:
       enabled: false
@@ -207,7 +207,7 @@ jobs:
   # Job de migration (si nécessaire)
   migrate:
     enabled: false
-    siteName: "erp.amoaman.com"  # Correspondant à votre domaine
+    siteName: "allobs.amoaman.com"  # Correspondant à votre domaine
     skipFailing: false
 
   # Permissions des volumes
