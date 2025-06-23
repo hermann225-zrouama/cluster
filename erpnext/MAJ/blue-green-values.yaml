@@ -1,0 +1,15 @@
+# blue-green-values.yaml
+nameOverride: "erpnext-green"
+fullnameOverride: "erpnext-green"
+
+# Utilisation d'un PVC partagé
+persistence:
+  worker:
+    enabled: true
+    existingClaim: "erpnext-shared-data"
+    
+# Service différent pour les tests
+service:
+  type: ClusterIP
+  ports:
+    http: 8001  # Port différent pour les tests

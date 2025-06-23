@@ -1,0 +1,26 @@
+# update-values.yaml (Version mise à jour)
+image:
+  repository: "zetsu225/erpnext"
+  tag: "v2.0.0"  # Nouvelle version
+  pullPolicy: "Always"
+
+# Ajout de la configuration de mise à jour
+jobs:
+  migrate:
+    enabled: true
+    siteName: "erp-test.amoaman.com"
+    skipFailing: false
+    
+  backup:
+    enabled: true
+    siteName: "erp-test.amoaman.com"
+    withFiles: true
+    
+  # Nouveau job pour la validation post-migration
+  postMigration:
+    enabled: true
+    siteName: "erp-test.amoaman.com"
+    commands:
+      - "bench --site erp-test.amoaman.com clear-cache"
+      - "bench --site erp-test.amoaman.com clear-website-cache"
+      - "bench --site erp-test.amoaman.com build"

@@ -1,0 +1,31 @@
+# backup-cronjob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: erpnext-backup
+  namespace: erp-prod
+spec:
+  schedule: "0 2 * * *"  # Chaque jour à 2h du matin
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: zetsu225/erpnext:latest
+            command:
+            - /bin/bash
+            - -c
+            - |
+              cd /home/frappe/frappe-bench
+              bench --site erp-test.amoaman.com backup --with-files
+              # Optionnel: envoyer vers stockage externe
+              # aws s3 cp sites/erp-test.amoaman.com/private/backups/ s3://your-bucket/backups/ --recursive
+            volumeMounts:
+            - name: sites-dir
+              mountPath: /home/frappe/frappe-bench/sites
+          volumes:
+          - name: sites-dir
+            persistentVolumeClaim:
+              claimName: erpnext-worker
+          restartPolicy: OnFailure
