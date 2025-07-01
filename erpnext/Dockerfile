@@ -19,14 +19,25 @@ RUN apt-get update && apt-get install -y \
     wget \
     python3-dev \
     python3-pip \
-    nodejs \
-    npm \
     build-essential \
     libffi-dev \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
-    
+
+# Installer Node 20 et forcer tous les chemins à l'utiliser
+RUN npm install -g n@latest && \
+    n 20 && \
+    rm -f /usr/bin/node /usr/bin/npm /usr/bin/npx || true && \
+    ln -sf /usr/local/n/versions/node/20/bin/node /usr/bin/node && \
+    ln -sf /usr/local/n/versions/node/20/bin/npm /usr/bin/npm && \
+    ln -sf /usr/local/n/versions/node/20/bin/npx /usr/bin/npx && \
+    npm install -g yarn@1.22.19
+
+# S'assurer que le PATH est bon pour tous les users
+ENV PATH="/usr/local/n/versions/node/20/bin:$PATH"
+
+
 
 # Mettre à jour pip et setuptools au niveau système
 RUN pip3 install --upgrade pip setuptools wheel
@@ -56,6 +67,7 @@ RUN if [ -d "env" ]; then \
         echo "Installation avec pip utilisateur..."; \
         pip3 install --user python-telegram-bot; \
     fi
+
 
 
 # Copier les scripts d'installation personnalisés
