@@ -1,49 +1,42 @@
 #!/bin/bash
-
 set -e
 
 echo "=== Installation des applications personnalisées ==="
-
 cd /home/frappe/frappe-bench
 
-# Liste des applications personnalisées à installer
-CUSTOM_APPS=(
-    "--branch version-14 https://github.com/frappe/hrms.git"  # Avec branche
-    "https://github.com/frappe/payments.git"                   # Sans branche
-    "https://github.com/aakvatech/transport.git"               # Sans branche
+# Configuration des applications avec leurs branches spécifiques
+# Format: "URL|BRANCHE" ou juste "URL" pour la branche par défaut
+declare -A CUSTOM_APPS=(
+    ["https://github.com/frappe/hrms.git"]="version-14"
+    ["https://github.com/frappe/payments.git"]=""  # Branche par défaut
+    ["https://github.com/aakvatech/transport.git"]=""  # Branche par défaut
+    # Ajoutez d'autres applications selon vos besoins
+    # ["https://github.com/exemple/app.git"]="develop"  # Exemple avec branche spécifique
 )
 
 # Installer chaque application personnalisée
-for entry in "${CUSTOM_APPS[@]}"; do
-    if [ -n "$entry" ] && [[ $entry != \#* ]]; then
-        echo "Traitement : $entry"
-
-        # Séparer les arguments (si présence de --branch)
-        read -r first second <<< "$entry"
-
-        if [[ "$first" == --branch ]]; then
-            branch="$second"
-            repo_url=$(echo "$entry" | awk '{print $3}')
-        else
-            branch=""
-            repo_url="$first"
-        fi
-
-        app_name=$(basename "$repo_url" .git)
-        echo "Installation de l'application $app_name depuis: $repo_url"
-
+for app_url in "${!CUSTOM_APPS[@]}"; do
+    if [ ! -z "$app_url" ]; then
+        branch="${CUSTOM_APPS[$app_url]}"
+        app_name=$(basename "$app_url" .git)
+        
+        echo "Installation de l'application depuis: $app_url"
+        
+        # Cloner l'application
         if [ ! -d "apps/$app_name" ]; then
-            if [ -n "$branch" ]; then
-                bench get-app "$branch" "$repo_url"
+            if [ ! -z "$branch" ]; then
+                echo "Installation de $app_name avec la branche: $branch"
+                bench get-app --branch "$branch" "$app_url"
             else
-                bench get-app "$repo_url"
+                echo "Installation de $app_name avec la branche par défaut"
+                bench get-app "$app_url"
             fi
-
+            
+            # Installer les dépendances si requirements.txt existe
             if [ -f "apps/$app_name/requirements.txt" ]; then
                 echo "Installation des dépendances pour $app_name"
                 pip3 install -r "apps/$app_name/requirements.txt"
             fi
-
             echo "✓ Application $app_name installée"
         else
             echo "✓ Application $app_name déjà présente"
@@ -51,7 +44,7 @@ for entry in "${CUSTOM_APPS[@]}"; do
     fi
 done
 
-# Construction des assets si des apps ont été ajoutées
+# Construire les assets si des applications ont été ajoutées
 if [ ${#CUSTOM_APPS[@]} -gt 0 ]; then
     echo "Construction des assets..."
     bench build --app erpnext
