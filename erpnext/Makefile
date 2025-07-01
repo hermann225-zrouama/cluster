@@ -1,7 +1,7 @@
 # Makefile pour ERPNext Helm
 
 # Variables
-IMAGE_NAME=zetsu225/erpnext
+IMAGE_NAME=zetsu225/erpnext-14
 TAG=latest
 HELM_RELEASE=frappe-bench
 NAMESPACE=erp-test
@@ -73,3 +73,14 @@ debug: ## Mode debug pour diagnostiquer les problèmes
 		-f $(VALUES_FILE) \
 		--debug \
 		--dry-run
+
+
+run: ## Lancer le conteneur localement (pour tests rapides)
+	docker run --rm -it \
+		-p 8000:8000 \
+		-e SITE_NAME=site.local \
+		-e DB_ROOT_USER=root \
+		-e MYSQL_ROOT_PASSWORD=root \
+		-e ADMIN_PASSWORD=admin \
+		$(IMAGE_NAME):$(TAG) \
+		bash -c "bench start"

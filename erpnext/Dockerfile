@@ -1,14 +1,13 @@
-# Dockerfile pour zetsu225/erpnext-image:latest
-FROM --platform=linux/amd64 frappe/erpnext:latest
+FROM --platform=linux/amd64 frappe/erpnext:v14.34.0
 
 # Métadonnées
 LABEL maintainer="zetsu225"
-LABEL description="ERPNext Custom Image with Additional Modules and Telegram Support"
-LABEL version="1.0.1"
+LABEL description="TEST VERSION 14"
+LABEL version="1.0.2"
 
 # Variables d'environnement
-ENV FRAPPE_BRANCH=version-15
-ENV ERPNEXT_BRANCH=version-15
+ENV FRAPPE_BRANCH=version-14
+ENV ERPNEXT_BRANCH=version-14
 
 # Passer en mode root pour les installations système
 USER root
@@ -27,6 +26,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
+    
 
 # Mettre à jour pip et setuptools au niveau système
 RUN pip3 install --upgrade pip setuptools wheel

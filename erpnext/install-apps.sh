@@ -11,7 +11,7 @@ cd /home/frappe/frappe-bench
 CUSTOM_APPS=(
     "https://github.com/frappe/hrms.git"  # Déjà inclus dans votre config
     "https://github.com/frappe/payments.git"  # Déjà inclus dans votre config
-    "https://github.com/aakvatech/transport.git"
+    "https://github.com/aakvatech/transport.git" 
     # Ajoutez d'autres applications selon vos besoins
 )
 
@@ -23,7 +23,7 @@ for app_url in "${CUSTOM_APPS[@]}"; do
         
         # Cloner l'application
         if [ ! -d "apps/$app_name" ]; then
-            bench get-app "$app_url"
+            bench get-app --branch version-14 "$app_url"
             
             # Installer les dépendances si requirements.txt existe
             if [ -f "apps/$app_name/requirements.txt" ]; then
