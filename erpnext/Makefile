@@ -1,7 +1,7 @@
 # Makefile pour ERPNext Helm
 
 # Variables
-IMAGE_NAME=zetsu225/erpnext
+IMAGE_NAME=zetsu225/erpnext-15.67
 TAG=latest
 HELM_RELEASE=frappe-bench
 NAMESPACE=erp-test

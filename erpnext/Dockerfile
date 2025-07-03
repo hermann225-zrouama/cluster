@@ -1,5 +1,5 @@
 # Dockerfile pour zetsu225/erpnext-image:latest
-FROM --platform=linux/amd64 frappe/erpnext:latest
+FROM --platform=linux/amd64 frappe/erpnext:v15.67.0
 
 # Métadonnées
 LABEL maintainer="zetsu225"
